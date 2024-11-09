@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XML Bitmap Font Previewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        h1 {
+            margin-bottom: 10px;
+        }
+        #canvas-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        #canvas, #counterCanvas {
+            border: 1px solid #ccc;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        #controls, #animation-controls, form {
+            width: 220px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        #controls {
+            position: fixed;
+            left: 20px;
+            top: 20px;
+        }
+        #controls .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        #controls label {
+            flex-shrink: 0;
+            width: 90px; /* Set a fixed width for labels */
+            margin-right: 10px;
+            font-weight: bold;
+            color: #383535;
+        }
+        #controls input[type="number"] {
+            flex-grow: 1;
+            width: 100%; /* Ensure input takes remaining space */
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        #controls input[type="checkbox"] {
+            width: auto; /* Ensure checkbox doesn't stretch */
+            margin-left: 10px; /* Optional: add some spacing between label and checkbox */
+        }
+        #right-bar {
+            position: fixed;
+            right: 20px;
+            top: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        #smallPreviewContainer {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 150px;
+            height: auto;
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            padding: 5px;
+        }
+        #smallPreviewImage {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            position: relative;
+        }
+        #highlight-box {
+            position: absolute;
+            border: 2px solid blue;
+            background: rgba(0, 0, 255, 0.2);
+            display: none;
+            pointer-events: none;
+        }
+        .top-right-buttons {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .top-right-buttons button {
+            padding: 5px 10px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .top-right-buttons button:hover {
+            background-color: #0056b3;
+        }
+        .button, #customPngFile, #customXmlFile {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .button:hover, #customPngFile:hover, #customXmlFile:hover {
+            background-color: #0056b3;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .start-button, .stop-button {
+            flex: 1;
+        }
+
+        .start-button:hover {
+            background-color: #0056b3;
+        }
+
+        .stop-button {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .stop-button:hover {
+            background-color: #c82333;
+        }
+
+        .file-name {
+            margin-left: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+        form, #animation-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        form label, #animation-controls label {
+            flex-shrink: 0;
+            width: 90px; /* Consistent label width */
+            margin-right: 10px;
+            font-weight: bold;
+            color: #383535;
+            display: inline-block;
+        }
+
+        form .input-group, #animation-controls .input-group {
+            display: flex;
+            align-items: center;
+        }
+
+        form input[type="number"],
+        form input[type="text"],
+        #animation-controls input[type="number"],
+        #right-bar input[type="number"],
+        #right-bar input[type="text"] {
+            flex-grow: 1;
+            width: 100%; /* Ensure input takes remaining space */
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        form input[type="checkbox"],
+        #animation-controls input[type="checkbox"],
+        #right-bar input[type="checkbox"] {
+            width: auto; /* Ensure checkbox doesn't stretch */
+            margin-left: 10px; /* Optional: add spacing between label and checkbox */
+        }
+    </style>
+</head>
+<body>
+
+<div id="smallPreviewContainer">
+    <img id="smallPreviewImage" src="path/to/image.png" alt="PNG Preview">
+    <div id="highlight-box"></div>
+</div>
+
+<div class="top-right-buttons">
+    <button onclick="resetAll()">Reset</button>
+    <button onclick="saveXML()">Save XML</button>
+</div>
+
+<div id="controls">
+    <h2>Adjust Glyph Parameters</h2>
+
+    <div class="input-group">
+        <label for="x">X:</label>
+        <input type="number" id="x" onchange="updateGlyphParam('x')">
+    </div>
+    <div class="input-group">
+        <label for="y">Y:</label>
+        <input type="number" id="y" onchange="updateGlyphParam('y')">
+    </div>
+    <div class="input-group">
+        <label for="width">Width:</label>
+        <input type="number" id="width" onchange="updateGlyphParam('width')">
+    </div>
+    <div class="input-group">
+        <label for="height">Height:</label>
+        <input type="number" id="height" onchange="updateGlyphParam('height')">
+    </div>
+    <div class="input-group">
+        <label for="xoffset">X Offset:</label>
+        <input type="number" id="xoffset" onchange="updateGlyphParam('xoffset')">
+    </div>
+    <div class="input-group">
+        <label for="yoffset">Y Offset:</label>
+        <input type="number" id="yoffset" onchange="updateGlyphParam('yoffset')">
+    </div>
+    <div class="input-group">
+        <label for="xadvance">X Advance:</label>
+        <input type="number" id="xadvance" onchange="updateXAdvance()">
+    </div>
+    <div class="input-group">
+        <label for="applyToAll">Apply xAdvance to All:</label>
+        <input type="checkbox" id="applyToAll">
+    </div>
+</div>
+
+<div id="canvas-container">
+    <h1>XML Bitmap Font Previewer</h1>
+    <canvas id="canvas" width="900" height="250"></canvas>
+    <canvas id="counterCanvas" width="900" height="250"></canvas>
+</div>
+
+<div id="right-bar">
+    <form>
+        <div class="input-group">
+            <label for="customPngFile">Upload PNG:</label>
+            <input type="file" id="pngFile" accept="image/png" style="display: none;">
+            <button type="button" id="customPngFile" onclick="document.getElementById('pngFile').click()">Choose File</button>
+            <span id="pngFileName" class="file-name">No file chosen</span>
+        </div>
+
+        <div class="input-group">
+            <label for="customXmlFile">Upload XML:</label>
+            <input type="file" id="xmlFile" accept=".xml" style="display: none;">
+            <button type="button" id="customXmlFile" onclick="document.getElementById('xmlFile').click()">Choose File</button>
+            <span id="xmlFileName" class="file-name">No file chosen</span>
+        </div>
+        <div class="input-group">
+            <label for="inputText">Text:</label>
+            <input type="text" id="inputText" value="1234567890.,">
+        </div>
+        <div class="input-group">
+            <label for="fontSize">Font Size:</label>
+            <input type="number" id="fontSize" value="1" step="0.1" min="0.1">
+        </div>
+        <div class="input-group">
+            <label for="showEdges">Show Edges:</label>
+            <input type="checkbox" id="showEdges">
+        </div>
+    </form>
+
+    <div id="animation-controls">
+        <h2>Counter Animation</h2>
+        <div class="input-group">
+            <label for="from">From:</label>
+            <input type="number" id="from" value="0">
+        </div>
+        <div class="input-group">
+            <label for="to">To:</label>
+            <input type="number" id="to" value="205632">
+        </div>
+        <div class="input-group">
+            <label for="speed">Speed (ms):</label>
+            <input type="number" id="speed" value="20">
+        </div>
+        <div class="input-group">
+            <label for="increment">Increment:</label>
+            <input type="number" id="increment" value="4">
+        </div>
+        <div class="button-group">
+            <button type="button" class="button start-button" onclick="startCounterAnimation()">Start</button>
+            <button type="button" class="button stop-button" onclick="stopCounterAnimation()">Stop</button>
+        </div>
+    </div>
+</div>
+<script>
+    let originalXMLFilename = 'modified_font.xml';
+    let image, glyphData = {};
+    let selectedGlyph = null;
+    let fontSize = 1;
+    let animationInterval;
+    let imageScaleX = 1, imageScaleY = 1;
+    let imageLoaded = false;
+    let xmlLoaded = false;
+
+    document.getElementById('pngFile').addEventListener('change', loadPNG);
+    document.getElementById('xmlFile').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            originalXMLFilename = file.name; // Store the original filename
+            loadXML(file);
+        }
+    });
+    document.getElementById('pngFile').addEventListener('change', function() {
+        const fileName = this.files[0] ? this.files[0].name : 'No file chosen';
+        document.getElementById('pngFileName').textContent = fileName;
+    });
+
+    document.getElementById('xmlFile').addEventListener('change', function() {
+        const fileName = this.files[0] ? this.files[0].name : 'No file chosen';
+        document.getElementById('xmlFileName').textContent = fileName;
+    });
+    document.getElementById('canvas').addEventListener('click', handleCanvasClick);
+    document.getElementById('showEdges').addEventListener('change', renderText);
+    document.getElementById('fontSize').addEventListener('input', () => {
+        fontSize = parseFloat(document.getElementById('fontSize').value);
+        renderText();
+    });
+
+    function loadPNG(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                image = new Image();
+                image.src = reader.result;
+                image.onload = () => {
+                    const previewImage = document.getElementById('smallPreviewImage');
+                    previewImage.src = image.src;
+                    previewImage.onload = () => {
+                        imageScaleX = previewImage.width / image.width;
+                        imageScaleY = previewImage.height / image.height;
+                        localStorage.setItem('cachedPNG', reader.result);
+                        imageLoaded = true;
+                        checkAndRenderText();
+                    };
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function loadXML(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            parseXMLData(e.target.result);
+            localStorage.setItem('cachedXML', e.target.result);
+            xmlLoaded = true;
+            checkAndRenderText();
+        };
+        reader.readAsText(file);
+    }
+
+    function checkAndRenderText() {
+        if (imageLoaded && xmlLoaded) {
+            renderText();
+        }
+    }
+
+    function parseXMLData(xmlText) {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "application/xml");
+
+        xmlDoc.querySelectorAll('char').forEach(charNode => {
+            const charCode = charNode.getAttribute('id');
+            glyphData[charCode] = {
+                x: parseInt(charNode.getAttribute('x')),
+                y: parseInt(charNode.getAttribute('y')),
+                width: parseInt(charNode.getAttribute('width')),
+                height: parseInt(charNode.getAttribute('height')),
+                xoffset: parseInt(charNode.getAttribute('xoffset')),
+                yoffset: parseInt(charNode.getAttribute('yoffset')),
+                xadvance: parseInt(charNode.getAttribute('xadvance')),
+            };
+        });
+    }
+
+    function updateXAdvance() {
+        const xadvanceValue = parseInt(document.getElementById('xadvance').value);
+        const applyToAll = document.getElementById('applyToAll').checked;
+
+        if (selectedGlyph && glyphData[selectedGlyph]) {
+            glyphData[selectedGlyph].xadvance = xadvanceValue;
+        }
+
+        if (applyToAll) {
+            for (const charCode in glyphData) {
+                glyphData[charCode].xadvance = xadvanceValue;
+            }
+        }
+        renderText();
+    }
+
+    function renderText() {
+        const text = document.getElementById('inputText').value;
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const showEdges = document.getElementById('showEdges').checked;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (image && glyphData) {
+            let x = 30;
+            for (let i = 0; i < text.length; i++) {
+                const charCode = text.charCodeAt(i).toString();
+                const glyph = glyphData[charCode];
+
+                if (glyph) {
+                    ctx.drawImage(
+                        image,
+                        glyph.x, glyph.y, glyph.width, glyph.height,
+                        x + glyph.xoffset * fontSize,
+                        30 + glyph.yoffset * fontSize,
+                        glyph.width * fontSize,
+                        glyph.height * fontSize
+                    );
+
+                    if (selectedGlyph === charCode) {
+                        ctx.strokeStyle = "blue";
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(
+                            x + glyph.xoffset * fontSize,
+                            30 + glyph.yoffset * fontSize,
+                            glyph.width * fontSize,
+                            glyph.height * fontSize
+                        );
+                    }
+
+                    if (showEdges) {
+                        ctx.strokeStyle = "red";
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(
+                            x,
+                            30,
+                            glyph.xadvance * fontSize,
+                            canvas.height - 60
+                        );
+                    }
+
+                    glyph.drawX = x + glyph.xoffset * fontSize;
+                    glyph.drawY = 30 + glyph.yoffset * fontSize;
+                    glyph.drawWidth = glyph.width * fontSize;
+                    glyph.drawHeight = glyph.height * fontSize;
+
+                    x += glyph.xadvance * fontSize;
+                }
+            }
+        }
+    }
+
+    function handleCanvasClick(event) {
+        const canvas = document.getElementById('canvas');
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        selectedGlyph = null;
+        for (const charCode in glyphData) {
+            const glyph = glyphData[charCode];
+            if (x >= glyph.drawX && x <= glyph.drawX + glyph.drawWidth &&
+                y >= glyph.drawY && y <= glyph.drawY + glyph.drawHeight) {
+                selectedGlyph = charCode;
+                document.getElementById('controls').style.display = 'block';
+                document.getElementById('x').value = glyph.x;
+                document.getElementById('y').value = glyph.y;
+                document.getElementById('width').value = glyph.width;
+                document.getElementById('height').value = glyph.height;
+                document.getElementById('xoffset').value = glyph.xoffset;
+                document.getElementById('yoffset').value = glyph.yoffset;
+                document.getElementById('xadvance').value = glyph.xadvance;
+
+                updatePreviewHighlight(glyph);
+                break;
+            }
+        }
+        renderText();
+    }
+
+    function startCounterAnimation() {
+        if (animationInterval) clearInterval(animationInterval);
+
+        const from = parseInt(document.getElementById('from').value);
+        const to = parseInt(document.getElementById('to').value);
+        const speed = parseInt(document.getElementById('speed').value);
+        const incr = parseInt(document.getElementById('increment').value);
+
+        let counter = from;
+        const increment = from < to ? incr : -incr;
+
+        const counterCanvas = document.getElementById('counterCanvas');
+        const ctx = counterCanvas.getContext('2d');
+
+        animationInterval = setInterval(() => {
+            ctx.clearRect(0, 0, counterCanvas.width, counterCanvas.height);
+
+            const displacement = 200 || counterCanvas.width / 2;
+
+            renderCounter(counter.toString(), ctx, displacement);
+
+            if (counter === to) {
+                clearInterval(animationInterval);
+            }
+            counter += increment;
+        }, speed);
+    }
+
+    function stopCounterAnimation() {
+        if (animationInterval) {
+            clearInterval(animationInterval);
+            animationInterval = null; // Clear the interval reference
+        }
+    }
+
+    function renderCounter(text, ctx, xStart) {
+        let x = xStart - (text.length * 20); // Adjust for centering
+        for (let i = 0; i < text.length; i++) {
+            const charCode = text.charCodeAt(i).toString();
+            const glyph = glyphData[charCode];
+
+            if (glyph && image) {
+                ctx.drawImage(
+                    image,
+                    glyph.x, glyph.y, glyph.width, glyph.height,
+                    x + glyph.xoffset * fontSize,
+                    30 + glyph.yoffset * fontSize,
+                    glyph.width * fontSize,
+                    glyph.height * fontSize
+                );
+                x += glyph.xadvance * fontSize;
+            }
+        }
+    }
+
+    function updatePreviewHighlight(glyph) {
+        const highlightBox = document.getElementById('highlight-box');
+        const previewImage = document.getElementById('smallPreviewImage');
+        const container = document.getElementById('smallPreviewContainer');
+
+        // Calculate the actual padding in pixels
+        const padding = parseInt(window.getComputedStyle(container).padding);
+
+        // Calculate scaling factors
+        const scaleX = previewImage.clientWidth / image.width;
+        const scaleY = previewImage.clientHeight / image.height;
+
+        // Apply padding adjustment to the left and top positions
+        highlightBox.style.display = 'block';
+        highlightBox.style.left = `${glyph.x * scaleX + padding}px`;
+        highlightBox.style.top = `${glyph.y * scaleY + padding}px`;
+        highlightBox.style.width = `${glyph.width * scaleX}px`;
+        highlightBox.style.height = `${glyph.height * scaleY}px`;
+    }
+
+    function updateGlyphParam(param) {
+        if (selectedGlyph && glyphData[selectedGlyph]) {
+            glyphData[selectedGlyph][param] = parseInt(document.getElementById(param).value);
+            renderText();
+        }
+    }
+
+    function saveXML() {
+        const modifiedXML = localStorage.getItem('cachedXML').replace(/<char id="(\d+)"[^>]*\/>/g, (match, charCode) => {
+            const glyph = glyphData[charCode];
+            if (glyph) {
+                return `<char id="${charCode}" x="${glyph.x}" y="${glyph.y}" width="${glyph.width}" height="${glyph.height}" xoffset="${glyph.xoffset}" yoffset="${glyph.yoffset}" xadvance="${glyph.xadvance}" />`;
+            }
+            return match;
+        });
+
+        const blob = new Blob([modifiedXML], { type: 'application/xml' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = originalXMLFilename; // Use the original filename for export
+        link.click();
+    }
+
+    function resetAll() {
+        localStorage.clear();
+        location.reload();
+    }
+
+    window.onload = () => {
+        const cachedPNG = localStorage.getItem('cachedPNG');
+        const cachedXML = localStorage.getItem('cachedXML');
+
+        if (cachedPNG) {
+            const previewImage = document.getElementById('smallPreviewImage');
+            previewImage.src = cachedPNG;
+            image = new Image();
+            image.src = cachedPNG;
+            image.onload = () => {
+                imageScaleX = previewImage.width / image.width;
+                imageScaleY = previewImage.height / image.height;
+                renderText();
+            };
+        }
+
+        if (cachedXML) {
+            parseXMLData(cachedXML);
+        }
+    };
+</script>
+
+</body>
+</html>
