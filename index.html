@@ -810,6 +810,7 @@
             const extrudedImageUrl = URL.createObjectURL(blob);
             document.getElementById("smallPreviewImage").src = extrudedImageUrl;
             image.src = extrudedImageUrl;
+            renderText();
         });
     }
 
