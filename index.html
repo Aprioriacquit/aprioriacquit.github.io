@@ -19,6 +19,26 @@
         }
         h1 {
             margin-bottom: 10px;
+            color: #444;
+            font-size: 30px;
+        }
+        h2 {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            background: #f8fafd;
+            margin-bottom: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 4px 4px 0 0;
+            border-bottom: 2px solid #d1d9e6;
+            letter-spacing: 1px;
+        }
+        .container h2 {
+            margin-top: 0; /* Ensures no extra margin above h2 in containers */
         }
         #canvas-container {
             flex-grow: 1;
@@ -33,29 +53,15 @@
             border-radius: 8px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
         }
-        #controls, #animation-controls, form {
+        #controls {
             width: 220px;
             padding: 15px;
             background: #fff;
             border-radius: 8px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        #controls {
             position: fixed;
             left: 20px;
             top: 20px;
-        }
-        #controls select {
-            flex-grow: 1;
-            width: 100%;
-            padding: 5px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            font-size: 14px;
-            box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
-            appearance: none;
-            background-color: #fff;
         }
         #controls .input-group {
             display: flex;
@@ -64,12 +70,14 @@
         }
         #controls label {
             flex-shrink: 0;
-            width: 90px; /* Set a fixed width for labels */
+            width: 90px;
             margin-right: 10px;
             font-weight: bold;
             color: #383535;
         }
-        #controls input[type="number"], #controls input[type="text"] {
+        #controls input[type="number"],
+        #controls input[type="text"],
+        #controls select {
             flex-grow: 1;
             width: 100%;
             padding: 5px;
@@ -78,24 +86,11 @@
             font-size: 14px;
             box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
         }
-        #controls input[type="checkbox"] {
-            width: auto;
-            margin-left: 10px;
-        }
-        #right-bar {
-            position: fixed;
-            right: 20px;
-            top: 100px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
         #smallPreviewContainer {
             position: fixed;
             bottom: 20px;
             left: 20px;
             width: 150px;
-            height: auto;
             overflow: hidden;
             border: 1px solid #ccc;
             background: #fff;
@@ -135,17 +130,71 @@
         .top-right-buttons button:hover {
             background-color: #0056b3;
         }
-        .button, #customPngFile, #customXmlFile {
+        #right-bar {
+            position: fixed;
+            right: 20px;
+            top: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .container {
+            width: 240px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .collapsible-content {
+            overflow: hidden;
+            max-height: 1000px; /* Expanded state */
+            transition: max-height 0.3s ease;
+        }
+        .collapsible-content:not(.active) {
+            max-height: 0;
+            transition: max-height 0.3s ease;
+        }
+        .collapsible-arrow {
+            transition: transform 0.3s;
+            display: inline-block;
+        }
+        .collapsible-arrow.active {
+            transform: rotate(90deg);
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .input-group label {
+            flex-shrink: 0;
+            width: 100px;
+            font-weight: bold;
+            color: #383535;
+        }
+        .input-group input[type="number"],
+        .input-group input[type="text"] {
+            width: 100%;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .input-group button {
             background-color: #007bff;
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 5px 0;
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
         }
-
-        .button:hover, #customPngFile:hover, #customXmlFile:hover {
+        .input-group button:hover {
             background-color: #0056b3;
         }
         .button-group {
@@ -153,20 +202,27 @@
             gap: 10px;
             width: 100%;
         }
-
-        .start-button, .stop-button {
-            flex: 1;
+        .button-group .start-button,
+        .button-group .stop-button {
+            flex: 1; /* Makes each button take half of the available width */
+            padding: 5px 0;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
         }
-
+        .start-button {
+            background-color: #007bff;
+            color: white;
+        }
         .start-button:hover {
             background-color: #0056b3;
         }
-
         .stop-button {
             background-color: #dc3545;
             color: white;
         }
-
         .stop-button:hover {
             background-color: #c82333;
         }
@@ -175,46 +231,16 @@
             margin-left: 10px;
             font-size: 14px;
             color: #555;
-        }
-        form, #animation-controls {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100px;
         }
 
-        form label, #animation-controls label {
-            flex-shrink: 0;
-            width: 90px; /* Consistent label width */
-            margin-right: 10px;
+        #controls label[for="applyMode"],
+        #controls label[for="applyToPool"] {
+            color: #d9534f;
             font-weight: bold;
-            color: #383535;
-            display: inline-block;
-        }
-
-        form .input-group, #animation-controls .input-group {
-            display: flex;
-            align-items: center;
-        }
-
-        form input[type="number"],
-        form input[type="text"],
-        #animation-controls input[type="number"],
-        #right-bar input[type="number"],
-        #right-bar input[type="text"] {
-            flex-grow: 1;
-            width: 100%;
-            padding: 5px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            font-size: 14px;
-            box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        form input[type="checkbox"],
-        #animation-controls input[type="checkbox"],
-        #right-bar input[type="checkbox"] {
-            width: auto;
-            margin-left: 10px;
         }
     </style>
 </head>
@@ -228,11 +254,11 @@
 <div class="top-right-buttons">
     <button onclick="resetAll()">Reset</button>
     <button onclick="saveXML()">Save XML</button>
+    <button onclick="savePNG()">Save PNG</button>
 </div>
 
 <div id="controls">
     <h2>Adjust Glyph Parameters</h2>
-
     <div class="input-group">
         <label for="x">X:</label>
         <input type="number" id="x" onchange="updateGlyphParam('x')">
@@ -268,7 +294,6 @@
             <option value="exclude">Exclude</option>
         </select>
     </div>
-
     <div class="input-group">
         <label for="applyToPool">Apply to:</label>
         <input type="text" id="applyToPool" placeholder="Enter glyph characters">
@@ -282,64 +307,99 @@
 </div>
 
 <div id="right-bar">
-    <form>
-        <div class="input-group">
-            <label for="customPngFile">Upload PNG:</label>
-            <input type="file" id="pngFile" accept="image/png" style="display: none;">
-            <button type="button" id="customPngFile" onclick="document.getElementById('pngFile').click()">Choose File</button>
-            <span id="pngFileName" class="file-name">No file chosen</span>
+    <!-- File Upload & Text Settings Section -->
+    <div class="container">
+        <h2 onclick="toggleCollapse(this)">File Upload & Text Settings <span class="collapsible-arrow">▶</span></h2>
+        <div class="collapsible-content active">
+            <div class="input-group">
+                <label for="customPngFile">Upload PNG:</label>
+                <input type="file" id="pngFile" accept="image/png" style="display: none;">
+                <button type="button" id="customPngFile" onclick="document.getElementById('pngFile').click()">Choose File</button>
+                <span id="pngFileName" class="file-name">No file chosen</span>
+            </div>
+            <div class="input-group">
+                <label for="customXmlFile">Upload XML:</label>
+                <input type="file" id="xmlFile" accept=".xml" style="display: none;">
+                <button type="button" id="customXmlFile" onclick="document.getElementById('xmlFile').click()">Choose File</button>
+                <span id="xmlFileName" class="file-name">No file chosen</span>
+            </div>
+            <div class="input-group">
+                <label for="inputText">Text:</label>
+                <input type="text" id="inputText" value="1234567890.,">
+            </div>
+            <div class="input-group">
+                <label for="fontSize">Font Size:</label>
+                <input type="number" id="fontSize" value="1" step="0.1" min="0.1">
+            </div>
+            <div class="input-group">
+                <label for="showEdges">Show Edges:</label>
+                <input type="checkbox" id="showEdges">
+            </div>
         </div>
+    </div>
 
-        <div class="input-group">
-            <label for="customXmlFile">Upload XML:</label>
-            <input type="file" id="xmlFile" accept=".xml" style="display: none;">
-            <button type="button" id="customXmlFile" onclick="document.getElementById('xmlFile').click()">Choose File</button>
-            <span id="xmlFileName" class="file-name">No file chosen</span>
+    <!-- PNG Settings Section -->
+    <div class="container">
+        <h2 onclick="toggleCollapse(this)">PNG Settings <span class="collapsible-arrow">▶</span></h2>
+        <div class="collapsible-content active">
+            <div class="input-group">
+                <label for="glyphMargin">Glyph Extrude (px):</label>
+                <input type="number" id="glyphMargin" placeholder="Enter margin in px" min="0" value="0">
+            </div>
+            <div class="input-group">
+                <label for="resizeWidth">Width (px):</label>
+                <input type="number" id="resizeWidth" placeholder="Width in px" min="1">
+            </div>
+            <div class="input-group">
+                <label for="resizeHeight">Height (px):</label>
+                <input type="number" id="resizeHeight" placeholder="Height in px" min="1">
+            </div>
+            <div class="input-group">
+                <label for="resizePercent">Scale (%):</label>
+                <input type="number" id="resizePercent" placeholder="Scale in %" min="1">
+            </div>
+            <div class="input-group">
+                <button type="button" class="button" onclick="applyPngSetting()">Apply</button>
+            </div>
         </div>
-        <div class="input-group">
-            <label for="inputText">Text:</label>
-            <input type="text" id="inputText" value="1234567890.,">
-        </div>
-        <div class="input-group">
-            <label for="fontSize">Font Size:</label>
-            <input type="number" id="fontSize" value="1" step="0.1" min="0.1">
-        </div>
-        <div class="input-group">
-            <label for="showEdges">Show Edges:</label>
-            <input type="checkbox" id="showEdges">
-        </div>
-    </form>
+    </div>
 
-    <div id="animation-controls">
-        <h2>Counter Animation</h2>
-        <div class="input-group">
-            <label for="from">From:</label>
-            <input type="number" id="from" value="0">
-        </div>
-        <div class="input-group">
-            <label for="to">To:</label>
-            <input type="number" id="to" value="205632">
-        </div>
-        <div class="input-group">
-            <label for="speed">Speed (ms):</label>
-            <input type="number" id="speed" value="20">
-        </div>
-        <div class="input-group">
-            <label for="increment">Increment:</label>
-            <input type="number" id="increment" value="4.25">
-        </div>
-        <div class="input-group">
-            <label for="enableRanges">Enable Ranges:</label>
-            <input type="checkbox" id="enableRanges">
-        </div>
-        <div class="button-group">
-            <button type="button" class="button start-button" onclick="startCounterAnimation()">Start</button>
-            <button type="button" class="button stop-button" onclick="stopCounterAnimation()">Stop</button>
+    <!-- Counter Animation Section -->
+    <div class="container">
+        <h2 onclick="toggleCollapse(this)">Counter Animation <span class="collapsible-arrow">▶</span></h2>
+        <div class="collapsible-content active">
+            <div class="input-group">
+                <label for="from">From:</label>
+                <input type="number" id="from" value="0">
+            </div>
+            <div class="input-group">
+                <label for="to">To:</label>
+                <input type="number" id="to" value="205632">
+            </div>
+            <div class="input-group">
+                <label for="speed">Speed (ms):</label>
+                <input type="number" id="speed" value="20">
+            </div>
+            <div class="input-group">
+                <label for="increment">Increment:</label>
+                <input type="number" id="increment" value="4.25">
+            </div>
+            <div class="input-group">
+                <label for="enableRanges">Enable Ranges:</label>
+                <input type="checkbox" id="enableRanges">
+            </div>
+            <div class="button-group">
+                <button type="button" class="button start-button" onclick="startCounterAnimation()">Start</button>
+                <button type="button" class="button stop-button" onclick="stopCounterAnimation()">Stop</button>
+            </div>
         </div>
     </div>
 </div>
+
 <script>
+    let originalImageWidth, originalImageHeight;
     let originalXMLFilename = 'modified_font.xml';
+    let originalImageFilename = 'modified_font.png';
     let image, glyphData = {};
     let selectedGlyph = null;
     let fontSize = 1;
@@ -372,14 +432,49 @@
         renderText();
     });
 
+    // Update height and percent when width changes
+    document.getElementById("resizeWidth").addEventListener("input", function () {
+        const newWidth = parseInt(this.value);
+        const ratio = newWidth / originalImageWidth;
+        document.getElementById("resizeHeight").value = Math.round(originalImageHeight * ratio);
+        document.getElementById("resizePercent").value = Math.round(ratio * 100);
+    });
+
+    // Update width and percent when height changes
+    document.getElementById("resizeHeight").addEventListener("input", function () {
+        const newHeight = parseInt(this.value);
+        const ratio = newHeight / originalImageHeight;
+        document.getElementById("resizeWidth").value = Math.round(originalImageWidth * ratio);
+        document.getElementById("resizePercent").value = Math.round(ratio * 100);
+    });
+
+    // Update width and height when percent changes
+    document.getElementById("resizePercent").addEventListener("input", function () {
+        const percent = parseInt(this.value) / 100;
+        document.getElementById("resizeWidth").value = Math.round(originalImageWidth * percent);
+        document.getElementById("resizeHeight").value = Math.round(originalImageHeight * percent);
+    });
+
+    function toggleCollapse(element) {
+        const content = element.nextElementSibling;
+        const arrow = element.querySelector(".collapsible-arrow");
+
+        content.classList.toggle("active");
+        arrow.classList.toggle("active");
+    }
+
     function loadPNG(event) {
         const file = event.target.files[0];
         if (file) {
+            originalImageFilename = file.name; // Store the original filename
             const reader = new FileReader();
             reader.onload = () => {
                 image = new Image();
                 image.src = reader.result;
                 image.onload = () => {
+                    originalImageWidth = image.width;
+                    originalImageHeight = image.height;
+
                     const previewImage = document.getElementById('smallPreviewImage');
                     previewImage.src = image.src;
                     previewImage.onload = () => {
@@ -387,12 +482,19 @@
                         imageScaleY = previewImage.height / image.height;
                         localStorage.setItem('cachedPNG', reader.result);
                         imageLoaded = true;
+                        updateImageSizeInputs(); // Initialize inputs with image dimensions
                         checkAndRenderText();
                     };
                 };
             };
             reader.readAsDataURL(file);
         }
+    }
+
+    function updateImageSizeInputs() {
+        document.getElementById("resizeWidth").value = originalImageWidth;
+        document.getElementById("resizeHeight").value = originalImageHeight;
+        document.getElementById("resizePercent").value = 100;
     }
 
     function loadXML(file) {
@@ -647,6 +749,98 @@
         renderText();
     }
 
+    function applyPngSetting() {
+        const margin = parseInt(document.getElementById("glyphMargin").value) || 0;
+
+        if (!image || !glyphData) {
+            alert("Please upload both PNG and XML files.");
+            return;
+        }
+
+        const width = parseInt(document.getElementById("resizeWidth").value);
+        const height = parseInt(document.getElementById("resizeHeight").value);
+
+        // Calculate the grid layout dimensions (rows and columns)
+        const glyphCount = Object.keys(glyphData).length;
+        const columns = Math.ceil(Math.sqrt(glyphCount)); // Assume a roughly square grid
+        const rows = Math.ceil(glyphCount / columns);
+
+        // Calculate total canvas size with margins
+        const maxGlyphWidth = Math.max(...Object.values(glyphData).map(g => g.width));
+        const maxGlyphHeight = Math.max(...Object.values(glyphData).map(g => g.height));
+
+        const totalWidth = columns * (maxGlyphWidth + margin * 2);
+        const totalHeight = rows * (maxGlyphHeight + margin * 2);
+
+        // Calculate scale factor based on new width and height
+        const scaleX = width / totalWidth;
+        const scaleY = height / totalHeight;
+
+        // Create a new canvas to accommodate the resized image
+        const newCanvas = document.createElement("canvas");
+        newCanvas.width = width;
+        newCanvas.height = height;
+        const newCtx = newCanvas.getContext("2d");
+
+        // Position glyphs in the grid with specified margins
+        let glyphIndex = 0;
+        const updatedGlyphData = {};
+
+        for (const [charCode, glyph] of Object.entries(glyphData)) {
+            const gridX = glyphIndex % columns;
+            const gridY = Math.floor(glyphIndex / columns);
+
+            const newX = gridX * (maxGlyphWidth + margin * 2) * scaleX + margin * scaleX;
+            const newY = gridY * (maxGlyphHeight + margin * 2) * scaleY + margin * scaleY;
+
+            // Draw each glyph on the new canvas with margins
+            newCtx.drawImage(
+                image,
+                glyph.x, glyph.y, glyph.width, glyph.height,
+                newX, newY, glyph.width * scaleX, glyph.height * scaleY
+            );
+
+            // Update glyph data with new positions
+            updatedGlyphData[charCode] = {
+                x: newX,
+                y: newY,
+                width: glyph.width * scaleX,
+                height: glyph.height * scaleY,
+                xoffset: glyph.xoffset * scaleX,
+                yoffset: glyph.yoffset * scaleY,
+                xadvance: glyph.xadvance * scaleX + margin * 2, // Adjust xadvance to account for margins
+            };
+
+            glyphIndex++;
+        }
+
+        // Update global glyphData with recalculated values
+        glyphData = updatedGlyphData;
+
+        // Convert the new canvas to a blob and update the preview
+        newCanvas.toBlob((blob) => {
+            const newImageUrl = URL.createObjectURL(blob);
+            const previewImage = document.getElementById("smallPreviewImage");
+            previewImage.src = newImageUrl;
+            image.src = newImageUrl;
+
+            // Update XML with new glyph data
+            updateXMLWithNewGlyphData();
+            renderText(); // Refresh preview with updated data
+        });
+    }
+
+    function updateXMLWithNewGlyphData() {
+        let newXMLContent = `<font>\n  <chars>\n`;
+        for (const [charCode, glyph] of Object.entries(glyphData)) {
+            newXMLContent += `    <char id="${charCode}" x="${glyph.x}" y="${glyph.y}" width="${glyph.width}" height="${glyph.height}" xoffset="${glyph.xoffset}" yoffset="${glyph.yoffset}" xadvance="${glyph.xadvance}" />\n`;
+        }
+        newXMLContent += `  </chars>\n</font>`;
+
+        // Store modified XML in local storage for download/save
+        localStorage.setItem("cachedXML", newXMLContent);
+    }
+
     function saveXML() {
         const modifiedXML = localStorage.getItem('cachedXML').replace(/<char id="(\d+)"[^>]*\/>/g, (match, charCode) => {
             const glyph = glyphData[charCode];
@@ -663,9 +857,80 @@
         link.click();
     }
 
+    function savePNG() {
+        if (!image || !glyphData) {
+            alert("Please upload both PNG and XML files.");
+            return;
+        }
+
+        const margin = parseInt(document.getElementById("glyphMargin").value) || 0;
+        const glyphCount = Object.keys(glyphData).length;
+        const columns = Math.ceil(Math.sqrt(glyphCount)); // Assume a roughly square grid
+        const rows = Math.ceil(glyphCount / columns);
+
+        // Calculate total dimensions with margins
+        const maxGlyphWidth = Math.max(...Object.values(glyphData).map(g => g.width));
+        const maxGlyphHeight = Math.max(...Object.values(glyphData).map(g => g.height));
+
+        const totalWidth = columns * (maxGlyphWidth + margin * 2);
+        const totalHeight = rows * (maxGlyphHeight + margin * 2);
+
+        // Create a new canvas for the full image with margins
+        const newCanvas = document.createElement("canvas");
+        newCanvas.width = totalWidth;
+        newCanvas.height = totalHeight;
+        const newCtx = newCanvas.getContext("2d");
+
+        // Draw each glyph with margins on the new canvas
+        let glyphIndex = 0;
+        for (const glyph of Object.values(glyphData)) {
+            const gridX = glyphIndex % columns;
+            const gridY = Math.floor(glyphIndex / columns);
+
+            const xPosition = gridX * (maxGlyphWidth + margin * 2) + margin;
+            const yPosition = gridY * (maxGlyphHeight + margin * 2) + margin;
+
+            newCtx.drawImage(
+                image,
+                glyph.x, glyph.y, glyph.width, glyph.height,
+                xPosition, yPosition, glyph.width, glyph.height
+            );
+
+            glyphIndex++;
+        }
+
+        const filenameWithMargins = originalImageFilename;
+
+        // Convert the new canvas to PNG and create a download link
+        newCanvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filenameWithMargins;
+            link.click();
+            URL.revokeObjectURL(url); // Clean up the URL object
+        });
+    }
+
     function resetAll() {
+        image = null;
+        glyphData = {};
+        selectedGlyph = null;
+        fontSize = 1;
+        animationInterval = null;
+        imageLoaded = false;
+        xmlLoaded = false;
+
+        // Clear fields
+        document.getElementById('pngFileName').textContent = 'No file chosen';
+        document.getElementById('xmlFileName').textContent = 'No file chosen';
+        document.getElementById('smallPreviewImage').src = '';
+        document.getElementById('canvas').getContext('2d').clearRect(0, 0, 900, 250);
+        document.getElementById('counterCanvas').getContext('2d').clearRect(0, 0, 900, 250);
+
+        // Reload page without any cached data
+        location.reload(true);
         localStorage.clear();
-        location.reload();
     }
 
     window.onload = () => {
