@@ -338,14 +338,24 @@
         </div>
     </div>
 
-    <!-- PNG Settings Section -->
+    <!-- GLYPHS Settings Section -->
     <div class="container">
-        <h2 onclick="toggleCollapse(this)">PNG Settings <span class="collapsible-arrow">▶</span></h2>
+        <h2 onclick="toggleCollapse(this)">GLYPHS Settings <span class="collapsible-arrow">▶</span></h2>
         <div class="collapsible-content active">
             <div class="input-group">
                 <label for="glyphMargin">Glyph Extrude (px):</label>
                 <input type="number" id="glyphMargin" placeholder="Enter margin in px" min="0" value="0">
             </div>
+            <div class="input-group">
+                <button type="button" class="button" onclick="applyExtrudeSetting()">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PNG Settings Section -->
+    <div class="container">
+        <h2 onclick="toggleCollapse(this)">Resize Settings <span class="collapsible-arrow">▶</span></h2>
+        <div class="collapsible-content active">
             <div class="input-group">
                 <label for="resizeWidth">Width (px):</label>
                 <input type="number" id="resizeWidth" placeholder="Width in px" min="1">
@@ -359,7 +369,7 @@
                 <input type="number" id="resizePercent" placeholder="Scale in %" min="1">
             </div>
             <div class="input-group">
-                <button type="button" class="button" onclick="applyPngSetting()">Apply</button>
+                <button type="button" class="button" onclick="applyResizeSetting()">Apply</button>
             </div>
         </div>
     </div>
@@ -749,7 +759,7 @@
         renderText();
     }
 
-    function applyPngSetting() {
+    function applyExtrudeSetting() {
         const margin = parseInt(document.getElementById("glyphMargin").value) || 0;
 
         if (!image || !glyphData) {
@@ -757,89 +767,108 @@
             return;
         }
 
-        const width = parseInt(document.getElementById("resizeWidth").value);
-        const height = parseInt(document.getElementById("resizeHeight").value);
-
-        // Calculate the grid layout dimensions (rows and columns)
-        const glyphCount = Object.keys(glyphData).length;
-        const columns = Math.ceil(Math.sqrt(glyphCount)); // Assume a roughly square grid
-        const rows = Math.ceil(glyphCount / columns);
-
-        // Calculate total canvas size with margins
+        // Create a new canvas with extruded glyphs
         const maxGlyphWidth = Math.max(...Object.values(glyphData).map(g => g.width));
         const maxGlyphHeight = Math.max(...Object.values(glyphData).map(g => g.height));
+        const columns = Math.ceil(Math.sqrt(Object.keys(glyphData).length));
+        const rows = Math.ceil(Object.keys(glyphData).length / columns);
 
         const totalWidth = columns * (maxGlyphWidth + margin * 2);
         const totalHeight = rows * (maxGlyphHeight + margin * 2);
 
-        // Calculate scale factor based on new width and height
-        const scaleX = width / totalWidth;
-        const scaleY = height / totalHeight;
+        const extrudeCanvas = document.createElement("canvas");
+        extrudeCanvas.width = totalWidth;
+        extrudeCanvas.height = totalHeight;
+        const extrudeCtx = extrudeCanvas.getContext("2d");
 
-        // Create a new canvas to accommodate the resized image
-        const newCanvas = document.createElement("canvas");
-        newCanvas.width = width;
-        newCanvas.height = height;
-        const newCtx = newCanvas.getContext("2d");
-
-        // Position glyphs in the grid with specified margins
         let glyphIndex = 0;
-        const updatedGlyphData = {};
 
         for (const [charCode, glyph] of Object.entries(glyphData)) {
             const gridX = glyphIndex % columns;
             const gridY = Math.floor(glyphIndex / columns);
 
-            const newX = gridX * (maxGlyphWidth + margin * 2) * scaleX + margin * scaleX;
-            const newY = gridY * (maxGlyphHeight + margin * 2) * scaleY + margin * scaleY;
+            const newX = gridX * (maxGlyphWidth + margin * 2) + margin;
+            const newY = gridY * (maxGlyphHeight + margin * 2) + margin;
 
-            // Draw each glyph on the new canvas with margins
-            newCtx.drawImage(
+            extrudeCtx.drawImage(
                 image,
                 glyph.x, glyph.y, glyph.width, glyph.height,
-                newX, newY, glyph.width * scaleX, glyph.height * scaleY
+                newX, newY, glyph.width, glyph.height
             );
 
-            // Update glyph data with new positions
-            updatedGlyphData[charCode] = {
-                x: newX,
-                y: newY,
-                width: glyph.width * scaleX,
-                height: glyph.height * scaleY,
-                xoffset: glyph.xoffset * scaleX,
-                yoffset: glyph.yoffset * scaleY,
-                xadvance: glyph.xadvance * scaleX + margin * 2, // Adjust xadvance to account for margins
-            };
+            glyphData[charCode].x = newX;
+            glyphData[charCode].y = newY;
+            glyphData[charCode].width = glyph.width;
+            glyphData[charCode].height = glyph.height;
+            glyphData[charCode].xadvance = glyph.xadvance + margin * 2;
 
             glyphIndex++;
         }
 
-        // Update global glyphData with recalculated values
-        glyphData = updatedGlyphData;
-
-        // Convert the new canvas to a blob and update the preview
-        newCanvas.toBlob((blob) => {
-            const newImageUrl = URL.createObjectURL(blob);
-            const previewImage = document.getElementById("smallPreviewImage");
-            previewImage.src = newImageUrl;
-            image.src = newImageUrl;
-
-            // Update XML with new glyph data
-            updateXMLWithNewGlyphData();
-            renderText(); // Refresh preview with updated data
+        // Update preview and image source with extruded canvas
+        extrudeCanvas.toBlob((blob) => {
+            const extrudedImageUrl = URL.createObjectURL(blob);
+            document.getElementById("smallPreviewImage").src = extrudedImageUrl;
+            image.src = extrudedImageUrl;
         });
     }
 
-    function updateXMLWithNewGlyphData() {
-        let newXMLContent = `<font>\n  <chars>\n`;
-        for (const [charCode, glyph] of Object.entries(glyphData)) {
-            newXMLContent += `    <char id="${charCode}" x="${glyph.x}" y="${glyph.y}" width="${glyph.width}" height="${glyph.height}" xoffset="${glyph.xoffset}" yoffset="${glyph.yoffset}" xadvance="${glyph.xadvance}" />\n`;
+    function applyResizeSetting() {
+        if (!image || !glyphData) {
+            alert("Please upload both PNG and XML files.");
+            return;
         }
-        newXMLContent += `  </chars>\n</font>`;
 
-        // Store modified XML in local storage for download/save
-        localStorage.setItem("cachedXML", newXMLContent);
+        const targetWidth = parseInt(document.getElementById("resizeWidth").value);
+        const targetHeight = parseInt(document.getElementById("resizeHeight").value);
+
+        // Calculate scale factor
+        const scaleFactor = Math.min(targetWidth / originalImageWidth, targetHeight / originalImageHeight);
+
+        if (scaleFactor === 1) {
+            alert("The image is already at the specified size.");
+            return;
+        }
+
+        // Create a new canvas to hold the scaled image
+        const resizeCanvas = document.createElement("canvas");
+        resizeCanvas.width = originalImageWidth * scaleFactor;
+        resizeCanvas.height = originalImageHeight * scaleFactor;
+        const resizeCtx = resizeCanvas.getContext("2d");
+
+        // Scale the image
+        resizeCtx.drawImage(image, 0, 0, resizeCanvas.width, resizeCanvas.height);
+
+        // Update glyph data to reflect the new scale
+        for (const glyph of Object.values(glyphData)) {
+            glyph.x = Math.round(glyph.x * scaleFactor);
+            glyph.y = Math.round(glyph.y * scaleFactor);
+            glyph.width = Math.round(glyph.width * scaleFactor);
+            glyph.height = Math.round(glyph.height * scaleFactor);
+            glyph.xoffset = Math.round(glyph.xoffset * scaleFactor);
+            glyph.yoffset = Math.round(glyph.yoffset * scaleFactor);
+            glyph.xadvance = Math.round(glyph.xadvance * scaleFactor);
+        }
+
+        // Update the XML scaleW and scaleH values
+        const xmlDoc = new DOMParser().parseFromString(localStorage.getItem('cachedXML'), "application/xml");
+        const commonNode = xmlDoc.querySelector("common");
+        commonNode.setAttribute("scaleW", resizeCanvas.width);
+        commonNode.setAttribute("scaleH", resizeCanvas.height);
+
+        // Store the modified XML
+        localStorage.setItem('cachedXML', new XMLSerializer().serializeToString(xmlDoc));
+
+        // Convert the resized canvas to a blob for preview
+        resizeCanvas.toBlob((blob) => {
+            const resizedImageUrl = URL.createObjectURL(blob);
+            document.getElementById("smallPreviewImage").src = resizedImageUrl;
+            image.src = resizedImageUrl;
+            renderText(); // Refresh preview with updated glyph data
+        });
     }
+
+
 
     function saveXML() {
         const modifiedXML = localStorage.getItem('cachedXML').replace(/<char id="(\d+)"[^>]*\/>/g, (match, charCode) => {
@@ -864,24 +893,32 @@
         }
 
         const margin = parseInt(document.getElementById("glyphMargin").value) || 0;
+
+        // If no margin is set, export the PNG directly as is
+        if (margin === 0) {
+            // Save the current image directly without restructuring
+            const link = document.createElement('a');
+            link.href = image.src;
+            link.download = originalImageFilename;
+            link.click();
+            return;
+        }
+
         const glyphCount = Object.keys(glyphData).length;
-        const columns = Math.ceil(Math.sqrt(glyphCount)); // Assume a roughly square grid
+        const columns = Math.ceil(Math.sqrt(glyphCount));
         const rows = Math.ceil(glyphCount / columns);
 
-        // Calculate total dimensions with margins
         const maxGlyphWidth = Math.max(...Object.values(glyphData).map(g => g.width));
         const maxGlyphHeight = Math.max(...Object.values(glyphData).map(g => g.height));
 
         const totalWidth = columns * (maxGlyphWidth + margin * 2);
         const totalHeight = rows * (maxGlyphHeight + margin * 2);
 
-        // Create a new canvas for the full image with margins
         const newCanvas = document.createElement("canvas");
         newCanvas.width = totalWidth;
         newCanvas.height = totalHeight;
         const newCtx = newCanvas.getContext("2d");
 
-        // Draw each glyph with margins on the new canvas
         let glyphIndex = 0;
         for (const glyph of Object.values(glyphData)) {
             const gridX = glyphIndex % columns;
@@ -899,16 +936,13 @@
             glyphIndex++;
         }
 
-        const filenameWithMargins = originalImageFilename;
-
-        // Convert the new canvas to PNG and create a download link
         newCanvas.toBlob((blob) => {
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
-            link.download = filenameWithMargins;
+            link.download = originalImageFilename;
             link.click();
-            URL.revokeObjectURL(url); // Clean up the URL object
+            URL.revokeObjectURL(url);
         });
     }
 
