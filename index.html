@@ -46,6 +46,17 @@
             left: 20px;
             top: 20px;
         }
+        #controls select {
+            flex-grow: 1;
+            width: 100%;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
+            appearance: none;
+            background-color: #fff;
+        }
         #controls .input-group {
             display: flex;
             align-items: center;
@@ -58,9 +69,9 @@
             font-weight: bold;
             color: #383535;
         }
-        #controls input[type="number"] {
+        #controls input[type="number"], #controls input[type="text"] {
             flex-grow: 1;
-            width: 100%; /* Ensure input takes remaining space */
+            width: 100%;
             padding: 5px;
             border-radius: 4px;
             border: 1px solid #ddd;
@@ -68,8 +79,8 @@
             box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
         }
         #controls input[type="checkbox"] {
-            width: auto; /* Ensure checkbox doesn't stretch */
-            margin-left: 10px; /* Optional: add some spacing between label and checkbox */
+            width: auto;
+            margin-left: 10px;
         }
         #right-bar {
             position: fixed;
@@ -191,7 +202,7 @@
         #right-bar input[type="number"],
         #right-bar input[type="text"] {
             flex-grow: 1;
-            width: 100%; /* Ensure input takes remaining space */
+            width: 100%;
             padding: 5px;
             border-radius: 4px;
             border: 1px solid #ddd;
@@ -202,8 +213,8 @@
         form input[type="checkbox"],
         #animation-controls input[type="checkbox"],
         #right-bar input[type="checkbox"] {
-            width: auto; /* Ensure checkbox doesn't stretch */
-            margin-left: 10px; /* Optional: add spacing between label and checkbox */
+            width: auto;
+            margin-left: 10px;
         }
     </style>
 </head>
@@ -248,11 +259,19 @@
     </div>
     <div class="input-group">
         <label for="xadvance">X Advance:</label>
-        <input type="number" id="xadvance" onchange="updateXAdvance()">
+        <input type="number" id="xadvance" onchange="updateGlyphParam('xadvance')">
     </div>
     <div class="input-group">
-        <label for="applyToAll">Apply xAdvance to All:</label>
-        <input type="checkbox" id="applyToAll">
+        <label for="applyMode">Apply Mode:</label>
+        <select id="applyMode">
+            <option value="include">Include</option>
+            <option value="exclude">Exclude</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label for="applyToPool">Apply to:</label>
+        <input type="text" id="applyToPool" placeholder="Enter glyph characters">
     </div>
 </div>
 
@@ -411,22 +430,6 @@
         });
     }
 
-    function updateXAdvance() {
-        const xadvanceValue = parseInt(document.getElementById('xadvance').value);
-        const applyToAll = document.getElementById('applyToAll').checked;
-
-        if (selectedGlyph && glyphData[selectedGlyph]) {
-            glyphData[selectedGlyph].xadvance = xadvanceValue;
-        }
-
-        if (applyToAll) {
-            for (const charCode in glyphData) {
-                glyphData[charCode].xadvance = xadvanceValue;
-            }
-        }
-        renderText();
-    }
-
     function renderText() {
         const text = document.getElementById('inputText').value;
         const canvas = document.getElementById('canvas');
@@ -515,7 +518,7 @@
     function stopCounterAnimation() {
         if (animationInterval) {
             clearInterval(animationInterval);
-            animationInterval = null; // Clear the interval reference
+            animationInterval = null;
         }
     }
 
@@ -602,10 +605,46 @@
     }
 
     function updateGlyphParam(param) {
-        if (selectedGlyph && glyphData[selectedGlyph]) {
-            glyphData[selectedGlyph][param] = parseInt(document.getElementById(param).value);
-            renderText();
+        const applyToPool = document.getElementById('applyToPool').value;
+        const applyMode = document.getElementById('applyMode').value;
+        const selectedGlyphs = new Set();
+
+        if (applyToPool) {
+            for (const char of applyToPool) {
+                const charCode = char.charCodeAt(0).toString();
+                if (glyphData[charCode]) {
+                    selectedGlyphs.add(charCode);
+                }
+            }
         }
+
+        const targetGlyphs = new Set();
+
+        // Decide whether to include or exclude specified characters
+        for (const glyphId in glyphData) {
+            if ((applyMode === "include" && selectedGlyphs.has(glyphId)) ||
+                (applyMode === "exclude" && !selectedGlyphs.has(glyphId))) {
+                targetGlyphs.add(glyphId);
+            }
+        }
+
+        // Include the selected glyph if it exists and is not already in the set
+        if (selectedGlyph && glyphData[selectedGlyph]) {
+            targetGlyphs.add(selectedGlyph);
+        }
+
+        // If no glyphs are specified, log a message and return
+        if (targetGlyphs.size === 0) {
+            console.warn("No glyphs to apply changes to.");
+            return;
+        }
+
+        // Apply the parameter change to all specified glyphs
+        targetGlyphs.forEach(glyphId => {
+            glyphData[glyphId][param] = parseInt(document.getElementById(param).value);
+        });
+
+        renderText();
     }
 
     function saveXML() {
