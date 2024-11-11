@@ -307,7 +307,11 @@
         </div>
         <div class="input-group">
             <label for="increment">Increment:</label>
-            <input type="number" id="increment" value="4">
+            <input type="number" id="increment" value="4.25">
+        </div>
+        <div class="input-group">
+            <label for="enableRanges">Enable Ranges:</label>
+            <input type="checkbox" id="enableRanges">
         </div>
         <div class="button-group">
             <button type="button" class="button start-button" onclick="startCounterAnimation()">Start</button>
@@ -508,13 +512,20 @@
         renderText();
     }
 
+    function stopCounterAnimation() {
+        if (animationInterval) {
+            clearInterval(animationInterval);
+            animationInterval = null; // Clear the interval reference
+        }
+    }
+
     function startCounterAnimation() {
         if (animationInterval) clearInterval(animationInterval);
 
-        const from = parseInt(document.getElementById('from').value);
-        const to = parseInt(document.getElementById('to').value);
-        const speed = parseInt(document.getElementById('speed').value);
-        const incr = parseInt(document.getElementById('increment').value);
+        const from = parseFloat(document.getElementById('from').value);
+        const to = parseFloat(document.getElementById('to').value);
+        const speed = parseFloat(document.getElementById('speed').value);
+        const incr = parseFloat(document.getElementById('increment').value);
 
         let counter = from;
         const increment = from < to ? incr : -incr;
@@ -526,25 +537,32 @@
             ctx.clearRect(0, 0, counterCanvas.width, counterCanvas.height);
 
             const displacement = 200 || counterCanvas.width / 2;
+            const enableRanges = document.getElementById('enableRanges').checked;
 
-            renderCounter(counter.toString(), ctx, displacement);
+            const counterText = enableRanges ? formatNumber(counter, true) : Math.floor(counter).toString();
 
-            if (counter === to) {
+            renderCounter(counterText, ctx, displacement);
+
+            if ((increment > 0 && counter >= to) || (increment < 0 && counter <= to)) {
                 clearInterval(animationInterval);
             }
             counter += increment;
         }, speed);
     }
 
-    function stopCounterAnimation() {
-        if (animationInterval) {
-            clearInterval(animationInterval);
-            animationInterval = null; // Clear the interval reference
+    function formatNumber(num, useRanges) {
+        if (useRanges) {
+            return num.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        } else {
+            return Math.floor(num).toString();
         }
     }
 
     function renderCounter(text, ctx, xStart) {
-        let x = xStart - (text.length * 20); // Adjust for centering
+        let x = xStart - (text.length * 20);
         for (let i = 0; i < text.length; i++) {
             const charCode = text.charCodeAt(i).toString();
             const glyph = glyphData[charCode];
@@ -602,7 +620,7 @@
         const blob = new Blob([modifiedXML], { type: 'application/xml' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = originalXMLFilename; // Use the original filename for export
+        link.download = originalXMLFilename;
         link.click();
     }
 
