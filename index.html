@@ -851,6 +851,27 @@
         });
 
         renderText();
+        updateCachedXML();
+    }
+
+    function updateCachedXML() {
+        const xmlDoc = new DOMParser().parseFromString(localStorage.getItem('cachedXML'), "application/xml");
+
+        for (const [charCode, glyph] of Object.entries(glyphData)) {
+            const charElement = xmlDoc.querySelector(`char[id="${charCode}"]`);
+            if (charElement) {
+                charElement.setAttribute("x", glyph.x);
+                charElement.setAttribute("y", glyph.y);
+                charElement.setAttribute("width", glyph.width);
+                charElement.setAttribute("height", glyph.height);
+                charElement.setAttribute("xoffset", glyph.xoffset);
+                charElement.setAttribute("yoffset", glyph.yoffset);
+                charElement.setAttribute("xadvance", glyph.xadvance);
+            }
+        }
+
+        const updatedXML = new XMLSerializer().serializeToString(xmlDoc);
+        localStorage.setItem('cachedXML', updatedXML);
     }
 
     function applyExtrudeSetting() {
