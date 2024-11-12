@@ -292,6 +292,7 @@
         <select id="applyMode">
             <option value="include">Include</option>
             <option value="exclude">Exclude</option>
+            <option value="disabled">Disabled</option>
         </select>
     </div>
     <div class="input-group">
@@ -716,6 +717,7 @@
         const applyMode = document.getElementById('applyMode').value;
         const selectedGlyphs = new Set();
 
+        // Populate selectedGlyphs with characters specified in applyToPool
         if (applyToPool) {
             for (const char of applyToPool) {
                 const charCode = char.charCodeAt(0).toString();
@@ -727,17 +729,25 @@
 
         const targetGlyphs = new Set();
 
-        // Decide whether to include or exclude specified characters
-        for (const glyphId in glyphData) {
-            if ((applyMode === "include" && selectedGlyphs.has(glyphId)) ||
-                (applyMode === "exclude" && !selectedGlyphs.has(glyphId))) {
-                targetGlyphs.add(glyphId);
+        // Decide which glyphs to apply changes to, based on applyMode
+        if (applyMode === "disabled") {
+            // In "disabled" mode, only the currently selected glyph is used
+            if (selectedGlyph && glyphData[selectedGlyph]) {
+                targetGlyphs.add(selectedGlyph);
             }
-        }
+        } else {
+            // Include or exclude based on the selected apply mode
+            for (const glyphId in glyphData) {
+                if ((applyMode === "include" && selectedGlyphs.has(glyphId)) ||
+                    (applyMode === "exclude" && !selectedGlyphs.has(glyphId))) {
+                    targetGlyphs.add(glyphId);
+                }
+            }
 
-        // Include the selected glyph if it exists and is not already in the set
-        if (selectedGlyph && glyphData[selectedGlyph]) {
-            targetGlyphs.add(selectedGlyph);
+            // Include the selected glyph if it exists and is not already in the set
+            if (selectedGlyph && glyphData[selectedGlyph]) {
+                targetGlyphs.add(selectedGlyph);
+            }
         }
 
         // If no glyphs are specified, log a message and return
