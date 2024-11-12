@@ -422,7 +422,7 @@
     document.getElementById('xmlFile').addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (file) {
-            originalXMLFilename = file.name; // Store the original filename
+            originalXMLFilename = file.name;
             loadXML(file);
         }
     });
@@ -442,7 +442,6 @@
         renderText();
     });
 
-    // Update height and percent when width changes
     document.getElementById("resizeWidth").addEventListener("input", function () {
         const newWidth = parseInt(this.value);
         const ratio = newWidth / originalImageWidth;
@@ -450,7 +449,6 @@
         document.getElementById("resizePercent").value = Math.round(ratio * 100);
     });
 
-    // Update width and percent when height changes
     document.getElementById("resizeHeight").addEventListener("input", function () {
         const newHeight = parseInt(this.value);
         const ratio = newHeight / originalImageHeight;
@@ -458,7 +456,6 @@
         document.getElementById("resizePercent").value = Math.round(ratio * 100);
     });
 
-    // Update width and height when percent changes
     document.getElementById("resizePercent").addEventListener("input", function () {
         const percent = parseInt(this.value) / 100;
         document.getElementById("resizeWidth").value = Math.round(originalImageWidth * percent);
@@ -476,7 +473,7 @@
     function loadPNG(event) {
         const file = event.target.files[0];
         if (file) {
-            originalImageFilename = file.name; // Store the original filename
+            originalImageFilename = file.name;
             const reader = new FileReader();
             reader.onload = () => {
                 image = new Image();
@@ -492,7 +489,7 @@
                         imageScaleY = previewImage.height / image.height;
                         localStorage.setItem('cachedPNG', reader.result);
                         imageLoaded = true;
-                        updateImageSizeInputs(); // Initialize inputs with image dimensions
+                        updateImageSizeInputs();
                         checkAndRenderText();
                     };
                 };
@@ -704,11 +701,9 @@
         // Calculate the actual padding in pixels
         const padding = parseInt(window.getComputedStyle(container).padding);
 
-        // Calculate scaling factors
         const scaleX = previewImage.clientWidth / image.width;
         const scaleY = previewImage.clientHeight / image.height;
 
-        // Apply padding adjustment to the left and top positions
         highlightBox.style.display = 'block';
         highlightBox.style.left = `${glyph.x * scaleX + padding}px`;
         highlightBox.style.top = `${glyph.y * scaleY + padding}px`;
@@ -836,7 +831,6 @@
         const targetWidth = parseInt(document.getElementById("resizeWidth").value);
         const targetHeight = parseInt(document.getElementById("resizeHeight").value);
 
-        // Calculate scale factor based on the updated (extruded) image dimensions
         const scaleFactor = Math.min(targetWidth / originalImageWidth, targetHeight / originalImageHeight);
 
         if (scaleFactor === 1) {
@@ -844,16 +838,13 @@
             return;
         }
 
-        // Create a new canvas to hold the scaled image
         const resizeCanvas = document.createElement("canvas");
         resizeCanvas.width = originalImageWidth * scaleFactor;
         resizeCanvas.height = originalImageHeight * scaleFactor;
         const resizeCtx = resizeCanvas.getContext("2d");
 
-        // Scale the image
         resizeCtx.drawImage(image, 0, 0, resizeCanvas.width, resizeCanvas.height);
 
-        // Update glyph data to reflect the new scale
         for (const glyph of Object.values(glyphData)) {
             glyph.x = Math.round(glyph.x * scaleFactor);
             glyph.y = Math.round(glyph.y * scaleFactor);
@@ -864,21 +855,18 @@
             glyph.xadvance = Math.round(glyph.xadvance * scaleFactor);
         }
 
-        // Update the XML scaleW and scaleH values
         const xmlDoc = new DOMParser().parseFromString(localStorage.getItem('cachedXML'), "application/xml");
         const commonNode = xmlDoc.querySelector("common");
         commonNode.setAttribute("scaleW", resizeCanvas.width);
         commonNode.setAttribute("scaleH", resizeCanvas.height);
 
-        // Store the modified XML
         localStorage.setItem('cachedXML', new XMLSerializer().serializeToString(xmlDoc));
 
-        // Convert the resized canvas to a blob for preview
         resizeCanvas.toBlob((blob) => {
             const resizedImageUrl = URL.createObjectURL(blob);
             document.getElementById("smallPreviewImage").src = resizedImageUrl;
             image.src = resizedImageUrl;
-            renderText(); // Refresh preview with updated glyph data
+            renderText();
         });
     }
 
@@ -920,14 +908,12 @@
         imageLoaded = false;
         xmlLoaded = false;
 
-        // Clear fields
         document.getElementById('pngFileName').textContent = 'No file chosen';
         document.getElementById('xmlFileName').textContent = 'No file chosen';
         document.getElementById('smallPreviewImage').src = '';
         document.getElementById('canvas').getContext('2d').clearRect(0, 0, 900, 250);
         document.getElementById('counterCanvas').getContext('2d').clearRect(0, 0, 900, 250);
 
-        // Reload page without any cached data
         location.reload(true);
         localStorage.clear();
     }
