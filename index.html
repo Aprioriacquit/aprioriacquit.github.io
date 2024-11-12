@@ -805,6 +805,19 @@
             glyphIndex++;
         }
 
+        // Update the XML scaleW and scaleH values to match the new extruded image dimensions
+        const xmlDoc = new DOMParser().parseFromString(localStorage.getItem('cachedXML'), "application/xml");
+        const commonNode = xmlDoc.querySelector("common");
+        commonNode.setAttribute("scaleW", totalWidth);
+        commonNode.setAttribute("scaleH", totalHeight);
+
+        // Store the modified XML back to local storage
+        localStorage.setItem('cachedXML', new XMLSerializer().serializeToString(xmlDoc));
+
+        // Update the global width and height variables to match the new extruded size
+        originalImageWidth = totalWidth;
+        originalImageHeight = totalHeight;
+
         // Update preview and image source with extruded canvas
         extrudeCanvas.toBlob((blob) => {
             const extrudedImageUrl = URL.createObjectURL(blob);
@@ -823,7 +836,7 @@
         const targetWidth = parseInt(document.getElementById("resizeWidth").value);
         const targetHeight = parseInt(document.getElementById("resizeHeight").value);
 
-        // Calculate scale factor
+        // Calculate scale factor based on the updated (extruded) image dimensions
         const scaleFactor = Math.min(targetWidth / originalImageWidth, targetHeight / originalImageHeight);
 
         if (scaleFactor === 1) {
@@ -844,7 +857,7 @@
         for (const glyph of Object.values(glyphData)) {
             glyph.x = Math.round(glyph.x * scaleFactor);
             glyph.y = Math.round(glyph.y * scaleFactor);
-            glyph.width = Math.round(glyph.width * scaleFactor);
+            glyph.width  = Math.round(glyph.width * scaleFactor);
             glyph.height = Math.round(glyph.height * scaleFactor);
             glyph.xoffset = Math.round(glyph.xoffset * scaleFactor);
             glyph.yoffset = Math.round(glyph.yoffset * scaleFactor);
@@ -870,7 +883,6 @@
     }
 
 
-
     function saveXML() {
         const modifiedXML = localStorage.getItem('cachedXML').replace(/<char id="(\d+)"[^>]*\/>/g, (match, charCode) => {
             const glyph = glyphData[charCode];
@@ -893,58 +905,10 @@
             return;
         }
 
-        const margin = parseInt(document.getElementById("glyphMargin").value) || 0;
-
-        // If no margin is set, export the PNG directly as is
-        if (margin === 0) {
-            // Save the current image directly without restructuring
-            const link = document.createElement('a');
-            link.href = image.src;
-            link.download = originalImageFilename;
-            link.click();
-            return;
-        }
-
-        const glyphCount = Object.keys(glyphData).length;
-        const columns = Math.ceil(Math.sqrt(glyphCount));
-        const rows = Math.ceil(glyphCount / columns);
-
-        const maxGlyphWidth = Math.max(...Object.values(glyphData).map(g => g.width));
-        const maxGlyphHeight = Math.max(...Object.values(glyphData).map(g => g.height));
-
-        const totalWidth = columns * (maxGlyphWidth + margin * 2);
-        const totalHeight = rows * (maxGlyphHeight + margin * 2);
-
-        const newCanvas = document.createElement("canvas");
-        newCanvas.width = totalWidth;
-        newCanvas.height = totalHeight;
-        const newCtx = newCanvas.getContext("2d");
-
-        let glyphIndex = 0;
-        for (const glyph of Object.values(glyphData)) {
-            const gridX = glyphIndex % columns;
-            const gridY = Math.floor(glyphIndex / columns);
-
-            const xPosition = gridX * (maxGlyphWidth + margin * 2) + margin;
-            const yPosition = gridY * (maxGlyphHeight + margin * 2) + margin;
-
-            newCtx.drawImage(
-                image,
-                glyph.x, glyph.y, glyph.width, glyph.height,
-                xPosition, yPosition, glyph.width, glyph.height
-            );
-
-            glyphIndex++;
-        }
-
-        newCanvas.toBlob((blob) => {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = originalImageFilename;
-            link.click();
-            URL.revokeObjectURL(url);
-        });
+        const link = document.createElement('a');
+        link.href = image.src;
+        link.download = originalImageFilename;
+        link.click();
     }
 
     function resetAll() {
