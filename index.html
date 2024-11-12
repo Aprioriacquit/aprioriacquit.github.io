@@ -399,6 +399,13 @@
                 <label for="enableRanges">Enable Ranges:</label>
                 <input type="checkbox" id="enableRanges">
             </div>
+            <div class="input-group">
+                <label for="animationType">Animation Type:</label>
+                <select id="animationType">
+                    <option value="canvas">Canvas</option>
+                    <option value="pixi">PIXI</option>
+                </select>
+            </div>
             <div class="button-group">
                 <button type="button" class="button start-button" onclick="startCounterAnimation()">Start</button>
                 <button type="button" class="button stop-button" onclick="stopCounterAnimation()">Stop</button>
@@ -406,7 +413,7 @@
         </div>
     </div>
 </div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/6.3.0/browser/pixi.min.js"></script>
 <script>
     let originalImageWidth, originalImageHeight;
     let originalXMLFilename = 'modified_font.xml';
@@ -418,6 +425,8 @@
     let imageScaleX = 1, imageScaleY = 1;
     let imageLoaded = false;
     let xmlLoaded = false;
+    // PIXI.JS
+    let pixiApp, pixiText;
 
     document.getElementById('pngFile').addEventListener('change', loadPNG);
     document.getElementById('xmlFile').addEventListener('change', (event) => {
@@ -541,12 +550,14 @@
     }
 
     function renderText() {
+        clearPixiApp();
+
         const text = document.getElementById('inputText').value;
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const showEdges = document.getElementById('showEdges').checked;
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx?.clearRect(0, 0, canvas.width, canvas.height);
 
         if (image && glyphData) {
             let x = 30;
@@ -630,9 +641,21 @@
             clearInterval(animationInterval);
             animationInterval = null;
         }
+
+        clearPixiApp();
     }
 
     function startCounterAnimation() {
+        const animationType = document.getElementById("animationType").value;
+
+        if (animationType === "canvas") {
+            startCanvasAnimation();
+        } else if (animationType === "pixi") {
+            startPixiAnimation();
+        }
+    }
+
+    function startCanvasAnimation() {
         if (animationInterval) clearInterval(animationInterval);
 
         const from = parseFloat(document.getElementById('from').value);
@@ -642,18 +665,14 @@
 
         let counter = from;
         const increment = from < to ? incr : -incr;
-
         const counterCanvas = document.getElementById('counterCanvas');
         const ctx = counterCanvas.getContext('2d');
 
         animationInterval = setInterval(() => {
-            ctx.clearRect(0, 0, counterCanvas.width, counterCanvas.height);
-
+            ctx?.clearRect(0, 0, counterCanvas.width, counterCanvas.height);
             const displacement = 200 || counterCanvas.width / 2;
             const enableRanges = document.getElementById('enableRanges').checked;
-
             const counterText = enableRanges ? formatNumber(counter, true) : Math.floor(counter).toString();
-
             renderCounter(counterText, ctx, displacement);
 
             if ((increment > 0 && counter >= to) || (increment < 0 && counter <= to)) {
@@ -661,6 +680,76 @@
             }
             counter += increment;
         }, speed);
+    }
+
+    function startPixiAnimation() {
+        clearPixiApp();
+
+        pixiApp = new PIXI.Application({
+            view: document.getElementById('counterCanvas'),
+            width: 900,
+            height: 250,
+            transparent: true
+        });
+
+        const from = parseFloat(document.getElementById('from').value);
+        const to = parseFloat(document.getElementById('to').value);
+        const speed = parseFloat(document.getElementById('speed').value);
+        const increment = from < to ? parseFloat(document.getElementById('increment').value) : -parseFloat(document.getElementById('increment').value);
+
+        let counter = from;
+        let lastUpdate = 0;
+
+        const fontPngData = localStorage.getItem('cachedPNG');
+        const fontXmlData = localStorage.getItem('cachedXML');
+
+        if (!fontPngData || !fontXmlData) {
+            console.error("Font data not found or not correctly encoded in localStorage.");
+            return;
+        }
+
+        PIXI.Loader.shared.add(originalImageFilename, fontPngData).load(() => {
+            const fontXml = new DOMParser().parseFromString(fontXmlData, 'application/xml');
+            const fontFaceName = fontXml.querySelector('info').getAttribute('face');
+            const fontTexture = PIXI.Texture.from(originalImageFilename);
+            PIXI.BitmapFont.install(fontXml, fontTexture);
+
+            pixiText = new PIXI.BitmapText(formatNumber(counter, true), { fontName: fontFaceName, fontSize: 100 });
+            pixiText.anchor.set(0.5);
+            pixiText.x = pixiApp.screen.width / 2;
+            pixiText.y = pixiApp.screen.height / 2;
+            pixiApp.stage.addChild(pixiText);
+
+            pixiApp.ticker.add((delta) => {
+                lastUpdate += delta * (1000 / 60);
+                if (lastUpdate >= speed) {
+                    counter += increment;
+                    pixiText.text = formatNumber(counter, true);
+                    lastUpdate = 0;
+
+                    if ((increment > 0 && counter >= to) || (increment < 0 && counter <= to)) {
+                        clearPixiApp();
+                    }
+                }
+            });
+        });
+    }
+
+    function clearPixiApp() {
+        if (pixiApp) {
+            pixiApp.stage.removeChildren(); // Remove all children from the stage
+            pixiApp.renderer.clear(); // Clear the renderer to fully reset the canvas
+            pixiApp.ticker.stop(); // Stop the ticker to halt animations
+            pixiText = null; // Clear the pixiText reference
+            PIXI.Loader.shared.reset();
+
+            for (var textureUrl in PIXI.utils.BaseTextureCache) {
+                delete PIXI.utils.BaseTextureCache[textureUrl];
+            }
+            for (var textureUrl in PIXI.utils.TextureCache) {
+                delete PIXI.utils.TextureCache[textureUrl];
+            }
+        }
     }
 
     function formatNumber(num, useRanges) {
@@ -910,43 +999,29 @@
     }
 
     function resetAll() {
-        image = null;
-        glyphData = {};
-        selectedGlyph = null;
-        fontSize = 1;
-        animationInterval = null;
-        imageLoaded = false;
-        xmlLoaded = false;
-
-        document.getElementById('pngFileName').textContent = 'No file chosen';
-        document.getElementById('xmlFileName').textContent = 'No file chosen';
-        document.getElementById('smallPreviewImage').src = '';
-        document.getElementById('canvas').getContext('2d').clearRect(0, 0, 900, 250);
-        document.getElementById('counterCanvas').getContext('2d').clearRect(0, 0, 900, 250);
-
-        location.reload(true);
         localStorage.clear();
+        location.reload(true);
     }
 
     window.onload = () => {
-        const cachedPNG = localStorage.getItem('cachedPNG');
-        const cachedXML = localStorage.getItem('cachedXML');
-
-        if (cachedPNG) {
-            const previewImage = document.getElementById('smallPreviewImage');
-            previewImage.src = cachedPNG;
-            image = new Image();
-            image.src = cachedPNG;
-            image.onload = () => {
-                imageScaleX = previewImage.width / image.width;
-                imageScaleY = previewImage.height / image.height;
-                renderText();
-            };
-        }
-
-        if (cachedXML) {
-            parseXMLData(cachedXML);
-        }
+        // const cachedPNG = localStorage.getItem('cachedPNG');
+        // const cachedXML = localStorage.getItem('cachedXML');
+        //
+        // if (cachedPNG) {
+        //     const previewImage = document.getElementById('smallPreviewImage');
+        //     previewImage.src = cachedPNG;
+        //     image = new Image();
+        //     image.src = cachedPNG;
+        //     image.onload = () => {
+        //         imageScaleX = previewImage.width / image.width;
+        //         imageScaleY = previewImage.height / image.height;
+        //         renderText();
+        //     };
+        // }
+        //
+        // if (cachedXML) {
+        //     parseXMLData(cachedXML);
+        // }
     };
 </script>
 
