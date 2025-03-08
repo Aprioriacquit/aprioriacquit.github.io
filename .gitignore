@@ -1,0 +1,9 @@
+.DS_Store
+node_modules
+/debug_index.html
+/dist
+/.vscode
+/venv
+/*.xlsx
+yarn.lock
+.idea/
