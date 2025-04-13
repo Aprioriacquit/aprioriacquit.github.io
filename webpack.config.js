@@ -11,7 +11,7 @@ module.exports = {
         filename: "bundle.js",
         path: path.resolve(__dirname, "dist"),
         clean: true,
-        publicPath: isProd ? "/aprioriacquit.github.io/" : "/",
+        publicPath: "/"
     },
     resolve: {
         extensions: [".ts", ".tsx", ".js", ".jsx"],
@@ -58,7 +58,7 @@ module.exports = {
     devServer: {
         static: path.join(__dirname, "dist"),
         hot: true,
-        port: 3000,
+        port: 3001,
         open: true,
     },
 };
