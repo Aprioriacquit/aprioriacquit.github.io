@@ -2,37 +2,36 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
-const common = {
-    entry: "./src/app.tsx",
+const isProd = process.env.NODE_ENV === "production";
+
+module.exports = {
+    mode: isProd ? "production" : "development",
+    entry: "./src/main.tsx",
     output: {
         filename: "bundle.js",
         path: path.resolve(__dirname, "dist"),
         clean: true,
     },
     resolve: {
-        extensions: [".ts", ".tsx", ".js", ".jsx", ".scss"],
+        extensions: [".ts", ".tsx", ".js", ".jsx"],
+        alias: {
+            "@": path.resolve(__dirname, "src"),
+        },
     },
     module: {
         rules: [
+            {
+                test: /\.(glb|gltf)$/,
+                type: "asset/resource",
+            },
             {
                 test: /\.tsx?$/,
                 exclude: /node_modules/,
                 use: "ts-loader",
             },
             {
-                test: /\.scss$/,
-                use: [
-                    process.env.NODE_ENV === "production"
-                        ? MiniCssExtractPlugin.loader
-                        : "style-loader",
-                    "css-loader",
-                    {
-                        loader: "sass-loader",
-                        options: {
-                            implementation: require("sass"),
-                        },
-                    },
-                ],
+                test: /\.css$/, // ✅ Use only CSS now
+                use: [isProd ? MiniCssExtractPlugin.loader : "style-loader", "css-loader"],
             },
             {
                 test: /\.(png|jpe?g|webp|gif|svg)$/i,
@@ -42,8 +41,7 @@ const common = {
                         maxSize: 8 * 1024, // Inline images < 8kb
                     },
                 },
-            }
-
+            },
         ],
     },
     plugins: [
@@ -55,28 +53,11 @@ const common = {
             filename: "styles.css",
         }),
     ],
+    devtool: isProd ? "source-map" : "eval-source-map",
     devServer: {
-        static: {
-            directory: path.join(__dirname, "dist"),
-        },
+        static: path.join(__dirname, "dist"),
         hot: true,
         port: 3000,
         open: true,
     },
 };
-
-const dev = {
-    ...common,
-    mode: "development",
-    name: "dev",
-    devtool: "eval-source-map", // Faster rebuilds
-};
-
-const prod = {
-    ...common,
-    mode: "production",
-    name: "prod",
-    devtool: "source-map", // Better debugging for minified code
-};
-
-module.exports = [dev, prod];

@@ -1,0 +1,59 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Montserrat", Arial, sans-serif;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
+button {
+  background: var(--button-bg-primary);
+  color: var(--text-primary);
+  border: 1px solid hsla(from var(--borders-primary) h s l / var(--buttons-alpha-primary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+button img {
+  width: 42%;
+  height: 42%;
+}
+
+/* ============================= */
+/*        SCROLLBAR       */
+/* ============================= */
+
+/* General scrollbar settings (Firefox) */
+* {
+  scrollbar-width: thin;  /* Makes scrollbar thinner */
+  scrollbar-color: var(--borders-primary) transparent; /* Uses theme color */
+}
+
+/* WebKit (Chrome, Edge, Safari) */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+/* Scrollbar track (the background) */
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Scrollbar thumb (the draggable part) */
+*::-webkit-scrollbar-thumb {
+  background: var(--borders-primary);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+/* On hover, make the thumb slightly lighter */
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}

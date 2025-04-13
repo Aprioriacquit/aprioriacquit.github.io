@@ -1,0 +1,92 @@
+body {
+    background: var(--root);
+}
+
+.app {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    padding: 0 10px 10px 10px;
+}
+
+.app::before {
+    content: "";
+    position: fixed;
+    height: 100vh;
+    width: calc(1259 * 100vh / 2000);
+
+    background: url('../assets/images/holographic-bg.png') no-repeat left center;
+    background-size: contain;
+
+    left: calc(-0.1 * (1259 * 100vh / 2000));
+    top: 0;
+    z-index: -1;
+}
+
+.header-container {
+    width: 100%;
+    height: var(--header-height);
+    /*background: linear-gradient(*/
+    /*        to bottom,*/
+    /*        hsla(from var(--bg-primary) h s l / 1),*/
+    /*        hsla(from var(--bg-primary) h s l / 1)*/
+    /*);*/
+
+    color: white;
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.logo-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: start;
+    justify-content: left;
+    flex-direction: column;
+    font-weight: 700;
+    font-size: var(--font-size-extra);
+}
+
+#logo-part-two {
+    padding-left: 30px;
+    margin-top: -8px;
+}
+
+.main-content {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+}
+
+.tools-container {
+    width: var(--tools-container-width);
+    height: 100%;
+    background-color: hsla(from var(--bg-secondary) h s l / var(--bg-alpha-alernative));
+    backdrop-filter: blur(8px);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: var(--spacing-md);
+    overflow-y: auto;
+    border-radius: var(--border-radius-lg);
+}
+
+.preview-container {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    background-color: hsla(from var(--bg-primary) h s l / var(--bg-alpha-primary));
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: var(--border-radius-lg);
+}
+
+.three-preview {
+    width: 100%;
+    height: 100%;
+}

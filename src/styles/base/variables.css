@@ -1,0 +1,17 @@
+:root {
+    --header-height: 68px;
+    --tools-container-width: 400px;
+
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+
+    --border-radius-sm: 8px;
+    --border-radius-md: 16px;
+    --border-radius-lg: 25px;
+
+    --font-size-sm: 12px;
+    --font-size-md: 14px;
+    --font-size-lg: 16px;
+    --font-size-extra: 1.9rem;
+}

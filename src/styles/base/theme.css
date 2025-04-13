@@ -1,0 +1,55 @@
+/* Default Light Theme */
+:root {
+    --root: #ffffff;
+    --bg-primary: #29283A;
+    --bg-secondary: #45445D;
+
+    --borders-primary: #8A8AAB;
+    --borders-secondary: #8A8AAB;
+
+    --text-primary: #1a1a1a;
+    --text-secondary: #444444;
+    --bounding-box: #32cd32;
+    --highlight: #f7a531;
+    --grid: #dddddd;
+    --xAdvance: #ff4500;
+    --checkbox-bg: #dddddd;
+    --switch-bg: #007aff;
+
+    --button-bg-primary: #39384B;
+    --button-bg-secondary: #B8CFF5;
+    --button-bg-tertiary: #FFFFFF;
+
+    --bg-alpha-primary: 0.9;
+    --bg-alpha-alernative: 0.4;
+
+    --buttons-alpha-primary: 0.6;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+    --root: #1e1e1e;
+    --bg-primary: #29283A;
+    --bg-secondary: #45445D;
+
+    --borders-primary: #8A8AAB;
+    --borders-secondary: #8A8AAB;
+
+    --text-primary: #ffffff;
+    --text-secondary: #080A1E;
+    --bounding-box: #32cd32;
+    --highlight: #f7a531;
+    --grid: #555555;
+    --xAdvance: #d60000;
+    --checkbox-bg: #333333;
+    --switch-bg: #4289d1;
+
+    --button-bg-primary: #39384B;
+    --button-bg-secondary: #B8CFF5;
+    --button-bg-tertiary: #FFFFFF;
+
+    --bg-alpha-primary: 0.9;
+    --bg-alpha-alernative: 0.4;
+
+    --buttons-alpha-primary: 0.6;
+}
