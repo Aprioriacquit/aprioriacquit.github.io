@@ -1,0 +1,91 @@
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log.*
+
+# Diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+node_modules/
+jspm_packages/
+bower_components/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint & stylelint cache
+.eslintcache
+.stylelintcache
+
+# Build artifacts
+dist/
+.next/
+.nuxt/
+out/
+.cache/
+.parcel-cache/
+.vitepress/
+.docusaurus/
+.serverless/
+.fusebox/
+
+# Coverage and test outputs
+coverage/
+.nyc_output/
+*.lcov
+.jest/
+
+# Python specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+env/
+venv/
+
+# Docker files
+*.dockerfile
+docker-compose.override.yml
+
+# WebStorm / JetBrains specific
+.idea/
+*.iml
+*.iws
+*.swp
+# Workspace-related files (optional, useful for sharing workspace settings)
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/.name
+.idea/libraries/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore all Excel files
+*.xlsx
+*.xls
+
+# Ignore private environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
